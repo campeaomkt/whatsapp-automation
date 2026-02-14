@@ -7,11 +7,36 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
+    authStrategy: new LocalAuth({
+        dataPath: './sessions'
+    }),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
     }
 });
+
+client.on('disconnected', async (reason) => {
+    console.log('WhatsApp desconectado:', reason);
+
+    try {
+        await client.destroy();
+    } catch (e) {}
+
+    setTimeout(() => {
+        client.initialize();
+    }, 5000);
+});
+
 
 
 
