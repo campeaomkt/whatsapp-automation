@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router();
+
+router.post("/", (req, res) => {
+  console.log("Mensagem recebida do WhatsApp:");
+  console.log(req.body);
+
+  res.sendStatus(200);
+});
+
+module.exports = router;
