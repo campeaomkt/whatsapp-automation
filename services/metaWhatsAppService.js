@@ -1,14 +1,12 @@
 const axios = require("axios");
 
-const GRAPH_URL = `https://graph.facebook.com/v19.0/${process.env.META_PHONE_NUMBER_ID}/messages`;
-
-async function sendWhatsAppMessage(to, message) {
+async function sendText(phoneNumberId, to, message) {
   try {
     const response = await axios.post(
-      GRAPH_URL,
+      `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
       {
         messaging_product: "whatsapp",
-        to: to,
+        to,
         type: "text",
         text: {
           body: message
@@ -22,18 +20,52 @@ async function sendWhatsAppMessage(to, message) {
       }
     );
 
-    console.log("✅ Mensagem enviada com sucesso:", response.data);
-
+    console.log("✅ Texto enviado:", response.data);
     return response.data;
 
   } catch (error) {
     console.error(
-      "❌ Erro ao enviar mensagem:",
+      "❌ Erro ao enviar texto:",
       error.response?.data || error.message
     );
-
     throw error;
   }
 }
 
-module.exports = { sendWhatsAppMessage };
+async function sendDocument(phoneNumberId, to, link, filename) {
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to,
+        type: "document",
+        document: {
+          link,
+          filename
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("📄 Documento enviado:", filename);
+    return response.data;
+
+  } catch (error) {
+    console.error(
+      "❌ Erro ao enviar documento:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
+module.exports = {
+  sendText,
+  sendDocument
+};
