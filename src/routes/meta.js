@@ -132,7 +132,7 @@ Em relação ao valor, é feito pelo Pix e você escolhe o valor que achar justo
 Valor sugerido:
 R$15, R$20 ou R$25
 
-📲 Chave Pix (Nubank):
+📲 Chave Pix - CPF (Nubank):
 04143449285
 
 Nome: Eliab Campos dos Santos
