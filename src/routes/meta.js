@@ -9,6 +9,7 @@ const { sendText, sendDocument } = require("../../services/metaWhatsAppService")
 const sessoes = {};
 const mensagensProcessadas = new Set();
 const lembretes = {};
+const timers = {};
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -51,7 +52,7 @@ router.post("/", async (req, res) => {
 
     const messageId = message.id;
 
-    // 🔒 Proteção contra mensagem duplicada
+    // 🔒 Evita duplicação
     if (mensagensProcessadas.has(messageId)) {
       return res.sendStatus(200);
     }
@@ -69,15 +70,24 @@ router.post("/", async (req, res) => {
       sessoes[from] = { etapa: 1 };
     }
 
-    const etapa = sessoes[from].etapa;
     const dados = prompts.paulo;
 
-    // ================================
-    // ETAPA 1 — APRESENTAÇÃO
-    // ================================
-    if (etapa === 1) {
+    // 🔥 Se já existe timer, cancela (reinicia contagem)
+    if (timers[from]) {
+      clearTimeout(timers[from]);
+    }
 
-      await sendText(phoneNumberId, from,
+    // ⏳ Espera 5 segundos após última mensagem
+    timers[from] = setTimeout(async () => {
+
+      const etapa = sessoes[from].etapa;
+
+      // ================================
+      // ETAPA 1 — APRESENTAÇÃO
+      // ================================
+      if (etapa === 1) {
+
+        await sendText(phoneNumberId, from,
 `👋 Que alegria ter você aqui!
 
 Me chamo Eliab, servo de Deus, e preparei um material especial: o Estudo das Cartas de Paulo (PDF). Um conteúdo simples, prático e muito edificante.
@@ -94,29 +104,27 @@ As famílias costumam apoiar com R$15, R$20 ou R$25.
 2️⃣ Estudo Especial do Apocalipse
 
 Posso enviar o arquivo para você?`
-      );
+        );
 
-      sessoes[from].etapa = 2;
-      return res.sendStatus(200);
-    }
-
-    // ================================
-    // ETAPA 2 — ENVIO DOS PDFs + PIX
-    // ================================
-    if (etapa === 2) {
-
-      await delay(2000);
-
-      await sendText(phoneNumberId, from, "Perfeito! Estou te enviando agora... 📂🤍");
-
-      await delay(2000);
-
-      for (const material of dados.materiais) {
-        await sendDocument(phoneNumberId, from, material.link, material.nome);
-        await delay(2000);
+        sessoes[from].etapa = 2;
+        return;
       }
 
-      await sendText(phoneNumberId, from,
+      // ================================
+      // ETAPA 2 — ENVIO DOS PDFs + PIX
+      // ================================
+      if (etapa === 2) {
+
+        await sendText(phoneNumberId, from, "Perfeito! Estou te enviando agora... 📂🤍");
+
+        await delay(2000);
+
+        for (const material of dados.materiais) {
+          await sendDocument(phoneNumberId, from, material.link, material.nome);
+          await delay(2000);
+        }
+
+        await sendText(phoneNumberId, from,
 `Sua decisão de abençoar essa obra já é uma semente de fé. 🙏
 
 Em relação ao valor, é feito pelo Pix e você escolhe o valor que achar justo — que seja de coração 🙌🤍
@@ -129,52 +137,53 @@ R$15, R$20 ou R$25
 
 Nome: Eliab Campos dos Santos
 
-Se esse trabalho tem tocado sua vida, considere contribuir para que essa obra alcance mais vidas.`);
+Se esse trabalho tem tocado sua vida, considere contribuir para que essa obra alcance mais vidas.`
+        );
 
-      sessoes[from].etapa = 3;
+        sessoes[from].etapa = 3;
 
-      // ⏰ LEMBRETE AUTOMÁTICO 10 MIN
-      lembretes[from] = setTimeout(async () => {
-        if (sessoes[from]?.etapa === 3) {
-          await sendText(phoneNumberId, from,
+        // ⏰ LEMBRETE 10 MIN
+        lembretes[from] = setTimeout(async () => {
+          if (sessoes[from]?.etapa === 3) {
+            await sendText(phoneNumberId, from,
 `Passando para lembrar com carinho 🙏
 
 Se o material já estiver te abençoando, considere contribuir para que essa obra continue alcançando mais vidas 🤍`);
-        }
-      }, 600000);
+          }
+        }, 600000);
 
-      return res.sendStatus(200);
-    }
-
-    // ================================
-    // ETAPA 3 — ENVIO DOS BÔNUS
-    // ================================
-    if (etapa === 3) {
-
-      // 🔥 Cancela lembrete se existir
-      if (lembretes[from]) {
-        clearTimeout(lembretes[from]);
-        delete lembretes[from];
+        return;
       }
 
-      await delay(2000);
+      // ================================
+      // ETAPA 3 — ENVIO DOS BÔNUS
+      // ================================
+      if (etapa === 3) {
 
-      await sendText(phoneNumberId, from,
+        // Cancela lembrete se existir
+        if (lembretes[from]) {
+          clearTimeout(lembretes[from]);
+          delete lembretes[from];
+        }
+
+        await sendText(phoneNumberId, from,
 `Muito obrigado 🤍
 
 🕊 Que alegria! Estou enviando agora seus bônus 🙌`
-      );
+        );
 
-      await delay(2000);
-
-      for (const bonus of dados.bonus) {
-        await sendDocument(phoneNumberId, from, bonus.link, bonus.nome);
         await delay(2000);
+
+        for (const bonus of dados.bonus) {
+          await sendDocument(phoneNumberId, from, bonus.link, bonus.nome);
+          await delay(2000);
+        }
+
+        sessoes[from].etapa = 4;
+        return;
       }
 
-      sessoes[from].etapa = 4;
-      return res.sendStatus(200);
-    }
+    }, 5000);
 
     return res.sendStatus(200);
 
