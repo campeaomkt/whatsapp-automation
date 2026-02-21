@@ -1,4 +1,4 @@
 module.exports = {
   // você vai colocar o phone_number_id real depois
-  "ID_NUMERO_PAULO": "paulo"
+  "1021000521093178": "paulo"
 };
