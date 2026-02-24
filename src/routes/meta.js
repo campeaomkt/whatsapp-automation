@@ -63,7 +63,7 @@ router.post("/", async (req, res) => {
     const phoneNumberId = value?.metadata?.phone_number_id;
 
     const ofertaKey = ofertas[phoneNumberId];
-    if (!ofertaKey || ofertaKey !== "paulo") {
+    if (!ofertaKey || ofertaKey !== "dicionario_acordes") {
       return res.sendStatus(200);
     }
 
@@ -71,7 +71,7 @@ router.post("/", async (req, res) => {
       sessoes[from] = { etapa: 1 };
     }
 
-    const dados = prompts.paulo;
+    const dados = prompts.dicionario_acordes;
 
     // 🔥 Cancela timer anterior (debounce real)
     if (timers[from]) {
@@ -80,9 +80,7 @@ router.post("/", async (req, res) => {
 
     timers[from] = setTimeout(async () => {
 
-      // 🔒 Se já está executando, não roda de novo
       if (executando[from]) return;
-
       executando[from] = true;
 
       try {
@@ -94,23 +92,26 @@ router.post("/", async (req, res) => {
         // ================================
         if (etapa === 1) {
 
-          sessoes[from].etapa = 2; // 🔥 Atualiza antes de enviar
+          sessoes[from].etapa = 2;
 
           await sendText(phoneNumberId, from,
 `👋 Que alegria ter você aqui!
 
-Me chamo Eliab, servo de Deus, e preparei um material especial: o Estudo das Cartas de Paulo (PDF). Um conteúdo simples, prático e muito edificante.
+Eu sou Eliab, tecladista há mais de 15 anos, e preparei algo que vai transformar sua forma de estudar e tocar: o Dicionário Completo de Acordes para Teclado (PDF).
 
-📖 O envio é imediato e funciona assim:
+🎹 O que você vai encontrar:
 
-✅ Você recebe o material primeiro.
-❤️ Depois, faça sua contribuição simbólica.
+✅ 312 Diagramas Detalhados — 26 variações em todos os 12 tons  
+✅ Visualização de Alta Performance — teclados ampliados mostrando exatamente onde posicionar os dedos  
+✅ Do Básico ao Jazz — tríades, tétrades, 9ª, 11ª, 13ª e acordes alterados  
+✅ Formato Inteligente A4 — ideal para imprimir ou usar no tablet
 
-As famílias costumam apoiar com R$15, R$20 ou R$25.
+📂 O envio é imediato e funciona assim:
 
-🎁 Bônus Inclusos:
-1️⃣ Devocional 365 Dias
-2️⃣ Estudo Especial do Apocalipse
+Você recebe o material primeiro.
+Depois, realiza sua contribuição.
+
+🚀 Pare de "caçar" notas e comece a tocar com confiança.
 
 Posso enviar o arquivo para você?`
           );
@@ -119,13 +120,13 @@ Posso enviar o arquivo para você?`
         }
 
         // ================================
-        // ETAPA 2 — ENVIO DOS PDFs + PIX
+        // ETAPA 2 — ENVIO DO MATERIAL + PIX
         // ================================
         if (etapa === 2) {
 
-          sessoes[from].etapa = 3; // 🔥 Atualiza antes
+          sessoes[from].etapa = 3;
 
-          await sendText(phoneNumberId, from, "Perfeito! Estou te enviando agora... 📂🤍");
+          await sendText(phoneNumberId, from, "Perfeito! Estou te enviando agora seu material... 🎹📂");
 
           await delay(2000);
 
@@ -135,7 +136,9 @@ Posso enviar o arquivo para você?`
           }
 
           await sendText(phoneNumberId, from,
-`Sua decisão de abençoar essa obra já é uma semente de fé. 🙏
+`Agora você tem em mãos o material de referência mais completo de 2026. 🚀
+
+Se esse guia vai acelerar sua evolução no teclado, considere apoiar esse trabalho.
 
 Valor sugerido:
 R$15, R$20 ou R$25
@@ -145,16 +148,17 @@ R$15, R$20 ou R$25
 
 Nome: Eliab Campos dos Santos
 
-Se esse trabalho tem tocado sua vida, considere contribuir para que essa obra alcance mais vidas.`
+Sua contribuição me ajuda a continuar produzindo materiais de alto nível para músicos que querem tocar com autoridade. 🎹🔥`
           );
 
           // ⏰ LEMBRETE 10 MIN
           lembretes[from] = setTimeout(async () => {
             if (sessoes[from]?.etapa === 3) {
               await sendText(phoneNumberId, from,
-`Passando para lembrar com carinho 🙏
+`Passando para lembrar 🙌
 
-Se o material já estiver te abençoando, considere contribuir para que essa obra continue alcançando mais vidas 🤍`);
+Se o Dicionário já estiver te ajudando, considere contribuir e fortalecer esse projeto para que mais tecladistas evoluam com um material realmente completo. 🎹🔥`
+              );
             }
           }, 600000);
 
@@ -162,11 +166,11 @@ Se o material já estiver te abençoando, considere contribuir para que essa obr
         }
 
         // ================================
-        // ETAPA 3 — ENVIO DOS BÔNUS
+        // ETAPA 3 — AGRADECIMENTO + POSSÍVEL BÔNUS FUTURO
         // ================================
         if (etapa === 3) {
 
-          sessoes[from].etapa = 4; // 🔥 Atualiza antes
+          sessoes[from].etapa = 4;
 
           if (lembretes[from]) {
             clearTimeout(lembretes[from]);
@@ -174,23 +178,18 @@ Se o material já estiver te abençoando, considere contribuir para que essa obr
           }
 
           await sendText(phoneNumberId, from,
-`Muito obrigado 🤍
+`Muito obrigado! 🙏🔥
 
-🕊 Que alegria! Estou enviando agora seus bônus 🙌`
+Sua decisão fortalece esse projeto e me motiva a continuar criando materiais cada vez mais completos para tecladistas.
+
+Qualquer dúvida sobre acordes, aplicação ou campo harmônico, pode me chamar aqui. Vamos evoluir sua harmonia para outro nível. 🎹🚀`
           );
-
-          await delay(2000);
-
-          for (const bonus of dados.bonus) {
-            await sendDocument(phoneNumberId, from, bonus.link, bonus.nome);
-            await delay(2000);
-          }
 
           return;
         }
 
       } finally {
-        executando[from] = false; // 🔓 Libera lock
+        executando[from] = false;
       }
 
     }, 5000);
