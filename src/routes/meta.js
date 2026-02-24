@@ -38,6 +38,10 @@ router.get("/", (req, res) => {
 router.post("/", async (req, res) => {
   try {
 
+     console.log("🔥 EVENTO RECEBIDO 🔥");
+    console.log(JSON.stringify(req.body, null, 2));
+
+
     const body = req.body;
 
     if (body.object !== "whatsapp_business_account") {
