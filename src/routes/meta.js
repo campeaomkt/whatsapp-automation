@@ -6,6 +6,8 @@ const { sendText } = require("../../services/metaWhatsAppService");
 
 const historicoUsuarios = {};
 const timersUsuarios = {};
+const etapaUsuarios = {};
+const mensagensProcessadas = new Set();
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -49,6 +51,20 @@ router.post("/", async (req, res) => {
     const value = changes?.value;
     const message = value?.messages?.[0];
 
+    const messageId = message?.id;
+
+if (mensagensProcessadas.has(messageId)) {
+  console.log("Mensagem duplicada ignorada:", messageId);
+  return res.sendStatus(200);
+}
+
+mensagensProcessadas.add(messageId);
+
+// limpa memória após 5 minutos
+setTimeout(() => {
+  mensagensProcessadas.delete(messageId);
+}, 300000);
+
     if (!message) return res.sendStatus(200);
 
     const from = message.from;
@@ -59,9 +75,35 @@ router.post("/", async (req, res) => {
 
     console.log("Mensagem recebida:", text);
 
-    // histórico
+    const textoLower = text.toLowerCase();
+
+    // cria histórico se não existir
     if (!historicoUsuarios[from]) {
       historicoUsuarios[from] = [];
+    }
+
+    // cria etapa se não existir
+    if (!etapaUsuarios[from]) {
+      etapaUsuarios[from] = "inicio";
+    }
+
+    // DETECÇÃO DE ETAPA
+    if (
+      textoLower.includes("preço") ||
+      textoLower.includes("precio") ||
+      textoLower.includes("quanto custa") ||
+      textoLower.includes("cuánto cuesta")
+    ) {
+      etapaUsuarios[from] = "preco_informado";
+    }
+
+    if (
+      textoLower.includes("link") ||
+      textoLower.includes("comprar") ||
+      textoLower.includes("comprar ahora") ||
+      textoLower.includes("quiero comprar")
+    ) {
+      etapaUsuarios[from] = "link_solicitado";
     }
 
     historicoUsuarios[from].push({
@@ -84,7 +126,11 @@ router.post("/", async (req, res) => {
 
       try {
 
-        const resposta = await gerarResposta(historicoUsuarios[from], "pt");
+       const resposta = await gerarResposta(
+  historicoUsuarios[from],
+  null,
+  etapaUsuarios[from]
+);
 
         historicoUsuarios[from].push({
           role: "assistant",
