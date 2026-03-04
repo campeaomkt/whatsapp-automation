@@ -4,13 +4,19 @@ const router = express.Router();
 const { gerarResposta } = require("../../services/aiService");
 const { sendText } = require("../../services/metaWhatsAppService");
 
-// histórico simples por usuário
 const historicoUsuarios = {};
+const timersUsuarios = {};
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // ========================================
-// 🔐 VALIDAÇÃO DO WEBHOOK (GET)
+// VALIDAÇÃO WEBHOOK
 // ========================================
+
 router.get("/", (req, res) => {
+
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -21,17 +27,16 @@ router.get("/", (req, res) => {
   }
 
   return res.sendStatus(403);
+
 });
 
 // ========================================
-// 📩 RECEBIMENTO DE MENSAGENS (POST)
+// RECEBER MENSAGENS
 // ========================================
+
 router.post("/", async (req, res) => {
 
   try {
-
-    console.log("🔥 EVENTO RECEBIDO 🔥");
-    console.log(JSON.stringify(req.body, null, 2));
 
     const body = req.body;
 
@@ -48,44 +53,62 @@ router.post("/", async (req, res) => {
 
     const from = message.from;
     const text = message.text?.body;
+    const phoneNumberId = value?.metadata?.phone_number_id;
 
     if (!text) return res.sendStatus(200);
 
-    const phoneNumberId = value?.metadata?.phone_number_id;
+    console.log("Mensagem recebida:", text);
 
-    // cria histórico se não existir
+    // histórico
     if (!historicoUsuarios[from]) {
       historicoUsuarios[from] = [];
     }
 
-    // adiciona mensagem do usuário
     historicoUsuarios[from].push({
       role: "user",
       content: text
     });
 
-    // limita histórico (evita gastar tokens)
+    // limita histórico
     if (historicoUsuarios[from].length > 10) {
       historicoUsuarios[from].shift();
     }
 
-    // gera resposta da IA
-    const resposta = await gerarResposta(historicoUsuarios[from], "pt");
+    // limpa timer anterior
+    if (timersUsuarios[from]) {
+      clearTimeout(timersUsuarios[from]);
+    }
 
-    // salva resposta no histórico
-    historicoUsuarios[from].push({
-      role: "assistant",
-      content: resposta
-    });
+    // cria novo timer (15 segundos)
+    timersUsuarios[from] = setTimeout(async () => {
 
-    // envia resposta
-    await sendText(phoneNumberId, from, resposta);
+      try {
+
+        const resposta = await gerarResposta(historicoUsuarios[from], "pt");
+
+        historicoUsuarios[from].push({
+          role: "assistant",
+          content: resposta
+        });
+
+        // tempo de digitação proporcional
+        const tempoDigitando = Math.min(6000, resposta.length * 40);
+
+        await delay(tempoDigitando);
+
+        await sendText(phoneNumberId, from, resposta);
+
+      } catch (err) {
+        console.error("Erro ao responder:", err);
+      }
+
+    }, 15000);
 
     return res.sendStatus(200);
 
   } catch (error) {
 
-    console.error("Erro no webhook:", error);
+    console.error("Erro webhook:", error);
     return res.sendStatus(500);
 
   }
