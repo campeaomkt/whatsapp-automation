@@ -20,8 +20,8 @@ async function sendText(phoneNumberId, to, message) {
       }
     );
 
-    console.log("✅ Texto enviado:", response.data);
-    return response.data;
+   console.log("Mensagem enviada");
+return response.data;
 
   } catch (error) {
     console.error(
