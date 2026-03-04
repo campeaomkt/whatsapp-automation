@@ -251,7 +251,7 @@ COMPORTAMENTO:
 
 Se perguntarem:
 "Quantos timbres são?"
-→ Responder que são 14 timbres.
+→ Responder que são 14 timbres e mandar a lista de timbres.
 → Reforçar que a proposta é qualidade acima de quantidade.
 → Informar que o pacote possui mais de 2GB.
 → Destacar fidelidade e uso profissional.
