@@ -21,8 +21,11 @@ async function gerarResposta(historico, idioma) {
         }
     };
 
-    const idiomaNormalizado = (idioma || "pt").toLowerCase().trim();
-const dados = configuracao[idiomaNormalizado] || configuracao["pt"];
+const dados = {
+    pt: configuracao.pt,
+    es: configuracao.es
+
+    };
 
 
     try {
@@ -35,15 +38,31 @@ const dados = configuracao[idiomaNormalizado] || configuracao["pt"];
 Você é a atendente oficial do treinamento Aevo Pro.
 
 INFORMAÇÕES IMPORTANTES:
+INFORMAÇÕES DE PAGAMENTO:
 
-Preço atual:
-${dados.preco}
+Se o cliente estiver falando em PORTUGUÊS use:
+
+Preço:
+${dados.pt.preco}
 
 Plataforma de pagamento:
-${dados.plataforma}
+${dados.pt.plataforma}
 
 Link oficial:
-${dados.link}
+${dados.pt.link}
+
+--------------------------------------------------
+
+Se o cliente estiver falando em ESPANHOL use:
+
+Precio:
+${dados.es.preco}
+
+Plataforma de pago:
+${dados.es.plataforma}
+
+Enlace oficial:
+${dados.es.link}
 
 O Aevo Pro ensina músicos a terem som profissional utilizando:
 - Celular
