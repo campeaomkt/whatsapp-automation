@@ -2,6 +2,11 @@ const axios = require("axios");
 
 async function sendText(phoneNumberId, to, message) {
   try {
+
+    console.log("📤 Enviando mensagem para:", to);
+    console.log("💬 Conteúdo da mensagem:");
+    console.log(message);
+
     const response = await axios.post(
       `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
       {
@@ -20,8 +25,9 @@ async function sendText(phoneNumberId, to, message) {
       }
     );
 
-   console.log("Mensagem enviada");
-return response.data;
+    console.log("✅ Mensagem enviada");
+
+    return response.data;
 
   } catch (error) {
     console.error(
@@ -34,6 +40,10 @@ return response.data;
 
 async function sendDocument(phoneNumberId, to, link, filename) {
   try {
+
+    console.log("📤 Enviando documento para:", to);
+    console.log("📄 Arquivo:", filename);
+
     const response = await axios.post(
       `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
       {
@@ -54,6 +64,7 @@ async function sendDocument(phoneNumberId, to, link, filename) {
     );
 
     console.log("📄 Documento enviado:", filename);
+
     return response.data;
 
   } catch (error) {
