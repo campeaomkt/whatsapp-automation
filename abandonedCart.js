@@ -1,5 +1,5 @@
 const db = require("./src/database/db");
-const { sendText } = require("./src/services/metaWhatsAppService");
+const { sendText } = require("./services/metaWhatsAppService");
 
 function verificarCarrinhoAbandonado(){
 
