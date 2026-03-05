@@ -35,3 +35,5 @@ app.listen(PORT, () => {
 });
 
 console.log("Servidor iniciado 🚀");
+
+require("./abandonedCart");

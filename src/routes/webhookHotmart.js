@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { sendText } = require("../../services/metaWhatsAppService");
+const db = require("../database/db");
 
 router.post("/", async (req, res) => {
 
@@ -14,12 +15,39 @@ router.post("/", async (req, res) => {
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
 
     // =============================
+    // COMPRA APROVADA HOTMART
+    // =============================
+
+    if (data.event === "PURCHASE_APPROVED") {
+
+        const email = data.data?.buyer?.email;
+
+        if (email) {
+
+            console.log("Compra aprovada para:", email);
+
+            db.prepare(`
+            UPDATE leads
+            SET comprou = 1
+            WHERE email = ?
+            `).run(email);
+
+        }
+
+    }
+
+    // =============================
     // CARRINHO ABANDONADO HOTMART
+    // (caso você ainda queira usar)
     // =============================
 
     if (data.event === "ABANDONED_CART") {
 
-        let telefone = data.data.buyer.phone.replace(/\D/g, "");
+        let telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
+
+        if (!telefone) {
+            return res.status(200).send("Sem telefone");
+        }
 
         console.log("Carrinho abandonado Hotmart:", telefone);
 

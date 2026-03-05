@@ -20,19 +20,26 @@ router.post("/", (req, res) => {
         console.log("Novo lead recebido:", email);
 
         // salva no banco
-        db.prepare(`
-            INSERT OR IGNORE INTO leads 
-            (nome, email, telefone, utm_source, utm_campaign, utm_content)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-            nome,
-            email,
-            telefone,
-            utm_source,
-            utm_campaign,
-            utm_content
-        );
-
+      db.prepare(`
+INSERT INTO leads 
+(nome, email, telefone, utm_source, utm_campaign, utm_content, created_at)
+VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+ON CONFLICT(email) DO UPDATE SET
+nome = excluded.nome,
+telefone = excluded.telefone,
+utm_source = excluded.utm_source,
+utm_campaign = excluded.utm_campaign,
+utm_content = excluded.utm_content,
+created_at = datetime('now'),
+mensagem_enviada = 0
+`).run(
+nome,
+email,
+telefone,
+utm_source,
+utm_campaign,
+utm_content
+);
         console.log("Lead salvo no banco");
 
         // link do checkout

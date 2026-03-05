@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS leads (
     utm_campaign TEXT,
     utm_content TEXT,
     status TEXT DEFAULT 'lead',
+    comprou INTEGER DEFAULT 0,
+    mensagem_enviada INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )
 `).run();
