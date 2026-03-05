@@ -6,9 +6,11 @@ const app = express();
 app.use(express.json());
 
 const webhookKiwify = require("./routes/webhookKiwify");
+const webhookHotmart = require("./routes/webhookHotmart");
 const metaWebhook = require("./routes/meta");
 
 app.use("/webhook/kiwify", webhookKiwify);
+app.use("/webhook/hotmart", webhookHotmart);
 app.use("/webhook/whatsapp", metaWebhook);
 
 const PORT = process.env.PORT || 3000;
