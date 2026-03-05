@@ -36,10 +36,9 @@ router.post("/", (req, res) => {
         console.log("Lead salvo no banco");
 
         // link do checkout
-       const checkout = "https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1";
+       const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&name=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(telefone)}`;
 
-        // redireciona para o checkout
-        res.redirect(checkout);
+res.redirect(checkout);
 
     } catch (error) {
 
