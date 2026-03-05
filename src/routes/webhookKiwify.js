@@ -11,24 +11,66 @@ router.post("/", async (req, res) => {
 
     console.log(data);
 
-    // verifica se é carrinho abandonado
+    const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+
+    // =============================
+    // PIX GERADO
+    // =============================
+
+    if (
+        data.order &&
+        data.order.webhook_event_type === "pix_created" &&
+        data.order.payment_method === "pix"
+    ) {
+
+        let telefone = data.order.Customer.mobile.replace(/\D/g, "");
+        const nome = data.order.Customer.first_name || "Tudo bem";
+        const checkoutLink = data.order.checkout_link;
+
+        const link = `https://pay.kiwify.com.br/${checkoutLink}`;
+
+        console.log("PIX gerado detectado:", telefone);
+
+        setTimeout(async () => {
+
+            try {
+
+                await sendText(
+                    phoneNumberId,
+                    telefone,
+`Oi ${nome}! Vi que você gerou o PIX para acessar o Aevo Pro.
+
+Se precisar posso te enviar novamente o link de pagamento 🙂`
+                );
+
+                console.log("Mensagem PIX enviada");
+
+            } catch (error) {
+
+                console.log("Erro PIX:", error);
+
+            }
+
+        }, 900000);
+
+    }
+
+    // =============================
+    // CARRINHO ABANDONADO
+    // =============================
+
     if (data.status !== "abandoned") {
         return res.status(200).send("Evento ignorado");
     }
 
-    // limpa telefone
     let telefone = data.phone.replace(/\D/g, "");
 
-    // adiciona DDI Brasil se necessário
     if (!telefone.startsWith("55")) {
         telefone = "55" + telefone;
     }
 
-    const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-
     console.log("Carrinho abandonado detectado:", telefone);
 
-    // espera 5 minutos
     setTimeout(async () => {
 
         try {
