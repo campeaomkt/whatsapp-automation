@@ -1,12 +1,16 @@
-
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
 /* ===== CORS (permite requisição do seu site) ===== */
 app.use(cors());
+
+/* ===== COOKIE PARSER ===== */
+app.use(cookieParser());
 
 /* ===== BODY PARSER ===== */
 app.use(express.json());

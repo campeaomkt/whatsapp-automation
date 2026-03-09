@@ -3,6 +3,8 @@ const router = express.Router();
 
 const { sendText } = require("../../services/metaWhatsAppService");
 const db = require("../database/db");
+const { sendLeadEvent } = require("../../services/metaPixelService");
+const crypto = require("crypto");
 
 router.post("/", async (req, res) => {
 
@@ -21,6 +23,9 @@ router.post("/", async (req, res) => {
     if (data.event === "PURCHASE_APPROVED") {
 
         const email = data.data?.buyer?.email;
+        const nome = data.data?.buyer?.name;
+        const telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
+        const valor = data.data?.purchase?.price?.value;
 
         if (email) {
 
@@ -32,13 +37,32 @@ router.post("/", async (req, res) => {
             WHERE email = ?
             `).run(email);
 
+            // gera event_id único
+            const eventId = crypto.randomUUID();
+
+            // envia evento Purchase para o Facebook
+            sendLeadEvent({
+
+                event_id: eventId,
+
+                email,
+                phone: telefone,
+                nome,
+
+                event_name: "Purchase",
+                value: valor,
+                currency: "BRL"
+
+            });
+
+            console.log("Evento Purchase enviado para Meta");
+
         }
 
     }
 
     // =============================
     // CARRINHO ABANDONADO HOTMART
-    // (caso você ainda queira usar)
     // =============================
 
     if (data.event === "ABANDONED_CART") {

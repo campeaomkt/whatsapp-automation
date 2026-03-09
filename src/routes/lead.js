@@ -3,6 +3,7 @@ const router = express.Router();
 
 const db = require("../database/db");
 const { sendLeadEvent } = require("../../services/metaPixelService");
+const crypto = require("crypto");
 
 // rota que recebe o formulário
 router.post("/", (req, res) => {
@@ -20,8 +21,15 @@ router.post("/", (req, res) => {
 
         console.log("Novo lead recebido:", email);
 
+        // gera event_id único para deduplicação
+        const eventId = crypto.randomUUID();
+
+        // captura cookies do facebook
+        const fbp = req.cookies?._fbp;
+        const fbc = req.cookies?._fbc;
+
         // salva no banco
-      db.prepare(`
+        db.prepare(`
 INSERT INTO leads 
 (nome, email, telefone, utm_source, utm_campaign, utm_content, created_at)
 VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
@@ -34,34 +42,50 @@ utm_content = excluded.utm_content,
 created_at = datetime('now'),
 mensagem_enviada = 0
 `).run(
-nome,
-email,
-telefone,
-utm_source,
-utm_campaign,
-utm_content
-);
+            nome,
+            email,
+            telefone,
+            utm_source,
+            utm_campaign,
+            utm_content
+        );
+
         console.log("Lead salvo no banco");
 
-       sendLeadEvent({
+        const eventData = {
 
-    email,
-    phone: telefone,
-    nome,
+            event_id: eventId,
 
-    utm_source,
-    utm_campaign,
-    utm_content,
+            email,
+            phone: telefone,
+            nome,
 
-    ip: req.ip,
-    userAgent: req.headers["user-agent"]
+            utm_source,
+            utm_campaign,
+            utm_content,
 
-});
+            ip: req.ip,
+            userAgent: req.headers["user-agent"],
+
+            // cookies facebook
+            fbp,
+            fbc
+
+        };
+
+        // envia evento Lead
+        sendLeadEvent(eventData);
+
+        // envia evento InitiateCheckout
+        sendLeadEvent({
+            ...eventData,
+            event_name: "InitiateCheckout"
+        });
 
         // link do checkout
-       const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&name=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(telefone)}`;
+        const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&name=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(telefone)}`;
 
-res.redirect(checkout);
+        res.redirect(checkout);
 
     } catch (error) {
 

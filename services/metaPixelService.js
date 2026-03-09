@@ -17,28 +17,39 @@ async function sendLeadEvent(data) {
     const payload = {
         data: [
             {
-                event_name: "Lead",
+                event_name: data.event_name || "Lead",
                 event_time: Math.floor(Date.now() / 1000),
+
+                // deduplicação entre browser pixel e servidor
+                event_id: data.event_id || undefined,
+
                 action_source: "website",
 
                 user_data: {
                     em: hash(data.email),
                     ph: hash(data.phone),
                     fn: hash(data.nome),
+
                     client_ip_address: data.ip,
                     client_user_agent: data.userAgent,
-                    external_id: hash(data.email)
+
+                    external_id: hash(data.email),
+
+                    // melhora atribuição do Facebook
+                    fbp: data.fbp,
+                    fbc: data.fbc
                 },
 
                 custom_data: {
                     utm_source: data.utm_source,
                     utm_campaign: data.utm_campaign,
-                    utm_content: data.utm_content
+                    utm_content: data.utm_content,
+
+                    value: data.value,
+                    currency: data.currency
                 }
             }
         ]
-
-      
     };
 
     try {
