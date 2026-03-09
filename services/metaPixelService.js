@@ -36,9 +36,9 @@ async function sendLeadEvent(data) {
                     utm_content: data.utm_content
                 }
             }
-        ],
+        ]
 
-         test_event_code: "TEST77239"
+      
     };
 
     try {
