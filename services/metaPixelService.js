@@ -2,6 +2,8 @@ const axios = require("axios");
 const crypto = require("crypto");
 
 function hash(value) {
+    if (!value) return undefined;
+
     return crypto
         .createHash("sha256")
         .update(value.trim().toLowerCase())
@@ -20,8 +22,18 @@ async function sendLeadEvent(data) {
                 action_source: "website",
 
                 user_data: {
-                    em: data.email ? hash(data.email) : undefined,
-                    ph: data.phone ? hash(data.phone) : undefined
+                    em: hash(data.email),
+                    ph: hash(data.phone),
+                    fn: hash(data.nome),
+                    client_ip_address: data.ip,
+                    client_user_agent: data.userAgent,
+                    external_id: hash(data.email)
+                },
+
+                custom_data: {
+                    utm_source: data.utm_source,
+                    utm_campaign: data.utm_campaign,
+                    utm_content: data.utm_content
                 }
             }
         ]
@@ -30,14 +42,14 @@ async function sendLeadEvent(data) {
     try {
 
         const response = await axios.post(url, payload);
+
         console.log("Evento enviado para Meta:", response.data);
 
     } catch (err) {
 
-        console.error("Erro ao enviar evento:", err.response?.data || err.message);
+        console.error("Erro Meta:", err.response?.data || err.message);
 
     }
-
 }
 
 module.exports = { sendLeadEvent };

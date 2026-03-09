@@ -43,9 +43,19 @@ utm_content
 );
         console.log("Lead salvo no banco");
 
-        sendLeadEvent({
+       sendLeadEvent({
+
     email,
-    phone: telefone
+    phone: telefone,
+    nome,
+
+    utm_source,
+    utm_campaign,
+    utm_content,
+
+    ip: req.ip,
+    userAgent: req.headers["user-agent"]
+
 });
 
         // link do checkout
