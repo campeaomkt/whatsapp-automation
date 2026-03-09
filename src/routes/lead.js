@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const db = require("../database/db");
+const { sendLeadEvent } = require("../../services/metaPixelService");
 
 // rota que recebe o formulário
 router.post("/", (req, res) => {
@@ -41,6 +42,11 @@ utm_campaign,
 utm_content
 );
         console.log("Lead salvo no banco");
+
+        sendLeadEvent({
+    email,
+    phone: telefone
+});
 
         // link do checkout
        const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&name=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(telefone)}`;
