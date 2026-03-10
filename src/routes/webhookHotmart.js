@@ -25,7 +25,11 @@ router.post("/", async (req, res) => {
         const email = data.data?.buyer?.email;
         const nome = data.data?.buyer?.name;
         const telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
-        const valor = data.data?.purchase?.price?.value;
+      const valorVenda = data.data?.purchase?.price?.value;
+const moeda = data.data?.purchase?.price?.currency_code;
+
+// comissão do afiliado (se existir)
+const comissao = data.data?.purchase?.commission?.value;
 
         if (email) {
 
@@ -50,9 +54,8 @@ router.post("/", async (req, res) => {
                 nome,
 
                 event_name: "Purchase",
-                value: valor,
-                currency: "BRL"
-
+                value: comissao || valorVenda,
+                currency: moeda || "USD"
             });
 
             console.log("Evento Purchase enviado para Meta");
