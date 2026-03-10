@@ -11,13 +11,15 @@ router.post("/", (req, res) => {
     try {
 
         const {
-            nome,
-            email,
-            telefone,
-            utm_source,
-            utm_campaign,
-            utm_content
-        } = req.body;
+    nome,
+    email,
+    telefone,
+    utm_source,
+    utm_campaign,
+    utm_medium,
+    utm_content,
+    utm_term
+} = req.body;
 
         console.log("Novo lead recebido:", email);
 
@@ -25,8 +27,9 @@ router.post("/", (req, res) => {
         const eventId = crypto.randomUUID();
 
         // captura cookies do facebook
-        const fbp = req.cookies?._fbp;
-        const fbc = req.cookies?._fbc;
+      const fbclid = req.query.fbclid || "";
+      const fbp = req.cookies?._fbp || "";
+      const fbc = req.cookies?._fbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : "");
 
         // salva no banco
         db.prepare(`
@@ -83,7 +86,21 @@ mensagem_enviada = 0
         });
 
         // link do checkout
-        const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&name=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(telefone)}`;
+   const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1
+&name=${encodeURIComponent(nome)}
+&email=${encodeURIComponent(email)}
+&phone=${encodeURIComponent(telefone)}
+
+&utm_source=${encodeURIComponent(utm_source || "")}
+&utm_campaign=${encodeURIComponent(utm_campaign || "")}
+&utm_medium=${encodeURIComponent(utm_medium || "")}
+&utm_content=${encodeURIComponent(utm_content || "")}
+&utm_term=${encodeURIComponent(utm_term || "")}
+
+&fbclid=${encodeURIComponent(fbclid || "")}
+&fbp=${encodeURIComponent(fbp || "")}
+&fbc=${encodeURIComponent(fbc || "")}
+`;
 
         res.redirect(checkout);
 
