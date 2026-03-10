@@ -86,21 +86,19 @@ mensagem_enviada = 0
         });
 
         // link do checkout
-   const checkout = `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1
-&name=${encodeURIComponent(nome)}
-&email=${encodeURIComponent(email)}
-&phone=${encodeURIComponent(telefone)}
-
-&utm_source=${encodeURIComponent(utm_source || "")}
-&utm_campaign=${encodeURIComponent(utm_campaign || "")}
-&utm_medium=${encodeURIComponent(utm_medium || "")}
-&utm_content=${encodeURIComponent(utm_content || "")}
-&utm_term=${encodeURIComponent(utm_term || "")}
-
-&fbclid=${encodeURIComponent(fbclid || "")}
-&fbp=${encodeURIComponent(fbp || "")}
-&fbc=${encodeURIComponent(fbc || "")}
-`;
+const checkout =
+`https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1` +
+`&name=${encodeURIComponent(nome)}` +
+`&email=${encodeURIComponent(email)}` +
+`&phone=${encodeURIComponent(telefone)}` +
+`&utm_source=${encodeURIComponent(utm_source || "")}` +
+`&utm_campaign=${encodeURIComponent(utm_campaign || "")}` +
+`&utm_medium=${encodeURIComponent(utm_medium || "")}` +
+`&utm_content=${encodeURIComponent(utm_content || "")}` +
+`&utm_term=${encodeURIComponent(utm_term || "")}` +
+`&fbclid=${encodeURIComponent(fbclid || "")}` +
+`&fbp=${encodeURIComponent(fbp || "")}` +
+`&fbc=${encodeURIComponent(fbc || "")}`;
 
         res.redirect(checkout);
 
