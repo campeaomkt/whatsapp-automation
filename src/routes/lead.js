@@ -19,7 +19,6 @@ const {
     utm_medium,
     utm_content,
     utm_term,
-    xcod,
     fbclid
 } = req.body;
 
@@ -85,14 +84,14 @@ mensagem_enviada = 0
             event_name: "InitiateCheckout"
         });
 
-        // cria xcod no formato que Hotmart / UTMify exige
+  const utmContentLimpo = (utm_content || "").split("::")[0];
+
 const xcodFinal =
 `FBhQwK21wXxR${utm_campaign || ""}` +
 `hQwK21wXxR${utm_medium || ""}` +
-`hQwK21wXxR${utm_content || ""}` +
+`hQwK21wXxR${utmContentLimpo}` +
 `hQwK21wXxR${utm_term || ""}`;
 
-// sck precisa ser igual ao xcod
 const sck = xcodFinal;
 
         // link do checkout
