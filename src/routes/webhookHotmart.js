@@ -15,8 +15,7 @@ router.post("/", async (req, res) => {
     console.log(JSON.stringify(data, null, 2));
 
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-
-   // =============================
+// =============================
 // COMPRA APROVADA HOTMART
 // =============================
 
@@ -26,15 +25,23 @@ if (data.event === "PURCHASE_APPROVED") {
     const nome = data.data?.buyer?.name;
     const telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
 
-    // valor da venda (fallback)
+    // valor da venda (fallback caso não encontre comissão)
     const valorVenda = parseFloat(data.data?.purchase?.price?.value || 0);
 
-    // comissão real recebida
-    const comissao = parseFloat(
-        data.data?.purchase?.commissions?.producer?.value ||
-        data.data?.purchase?.commission?.value ||
-        0
-    );
+    // buscar comissão correta dentro do array commissions
+    let comissao = 0;
+
+    if (data.data?.commissions && Array.isArray(data.data.commissions)) {
+
+        const producerCommission = data.data.commissions.find(
+            c => c.source === "PRODUCER"
+        );
+
+        if (producerCommission) {
+            comissao = parseFloat(producerCommission.value);
+        }
+
+    }
 
     // sempre prioriza comissão
     const valorFinal = comissao > 0 ? comissao : valorVenda;
