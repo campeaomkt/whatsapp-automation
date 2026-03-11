@@ -12,7 +12,7 @@ router.post("/", async (req, res) => {
 
     const data = req.body;
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
 
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
 
@@ -25,16 +25,24 @@ router.post("/", async (req, res) => {
         const email = data.data?.buyer?.email;
         const nome = data.data?.buyer?.name;
         const telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
-      const valorVenda = data.data?.purchase?.price?.value;
-const moeda = data.data?.purchase?.price?.currency_code;
 
-// comissão do afiliado (se existir)
-const comissao = data.data?.purchase?.commission?.value;
+        const valorVenda = data.data?.purchase?.price?.value;
+
+        // comissão do produtor
+        const comissao =
+            data.data?.purchase?.commissions?.producer?.value ||
+            data.data?.purchase?.commission?.value;
+
+        // valor final enviado ao Facebook
+        const valorFinal = comissao || valorVenda || 0;
 
         if (email) {
 
-            console.log("Compra aprovada para:", email);
+            console.log("💰 Compra aprovada para:", email);
+            console.log("💰 Comissão detectada:", comissao);
+            console.log("💰 Valor enviado ao Facebook:", valorFinal);
 
+            // atualiza lead
             db.prepare(`
             UPDATE leads
             SET comprou = 1
@@ -42,9 +50,9 @@ const comissao = data.data?.purchase?.commission?.value;
             `).run(email);
 
             // gera event_id único
-            const eventId = crypto.randomUUID();
+            const eventId = "purchase_" + email;
 
-            // envia evento Purchase para o Facebook
+            // envia evento Purchase para Meta
             sendLeadEvent({
 
                 event_id: eventId,
@@ -54,11 +62,13 @@ const comissao = data.data?.purchase?.commission?.value;
                 nome,
 
                 event_name: "Purchase",
-                value: comissao || valorVenda,
-                currency: moeda || "USD"
+
+                value: Number(valorFinal),
+                currency: "USD"
+
             });
 
-            console.log("Evento Purchase enviado para Meta");
+            console.log("✅ Evento Purchase enviado para Meta");
 
         }
 
@@ -76,7 +86,7 @@ const comissao = data.data?.purchase?.commission?.value;
             return res.status(200).send("Sem telefone");
         }
 
-        console.log("Carrinho abandonado Hotmart:", telefone);
+        console.log("🛒 Carrinho abandonado Hotmart:", telefone);
 
         setTimeout(async () => {
 
@@ -90,7 +100,7 @@ const comissao = data.data?.purchase?.commission?.value;
 Si tienes alguna duda puedo ayudarte aquí 🙂`
                 );
 
-                console.log("Mensaje de recuperación enviado.");
+                console.log("📩 Mensaje de recuperación enviado.");
 
             } catch (error) {
 
