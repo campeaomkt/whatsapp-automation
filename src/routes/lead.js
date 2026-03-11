@@ -10,7 +10,7 @@ router.post("/", (req, res) => {
 
     try {
 
- const {
+const {
     nome,
     email,
     telefone,
@@ -19,7 +19,8 @@ router.post("/", (req, res) => {
     utm_medium,
     utm_content,
     utm_term,
-    xcod
+    xcod,
+    fbclid
 } = req.body;
 
         console.log("Novo lead recebido:", email);
@@ -28,9 +29,9 @@ router.post("/", (req, res) => {
         const eventId = crypto.randomUUID();
 
         // captura cookies do facebook
-      const fbclid = req.query.fbclid || "";
-      const fbp = req.cookies?._fbp || "";
-      const fbc = req.cookies?._fbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : "");
+        const fbclidFinal = fbclid || req.query.fbclid || "";
+        const fbp = req.cookies?._fbp || "";
+        const fbc = req.cookies?._fbc || (fbclidFinal ? `fb.1.${Date.now()}.${fbclidFinal}` : "");
 
         // salva no banco
         db.prepare(`
@@ -71,10 +72,8 @@ mensagem_enviada = 0
             ip: req.ip,
             userAgent: req.headers["user-agent"],
 
-            // cookies facebook
             fbp,
             fbc
-
         };
 
         // envia evento Lead
@@ -86,8 +85,11 @@ mensagem_enviada = 0
             event_name: "InitiateCheckout"
         });
 
-// link do checkout
-const checkout =
+        // cria sck baseado no xcod
+        const sck = xcod;
+
+        // link do checkout
+        const checkout =
 `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1` +
 `&name=${encodeURIComponent(nome)}` +
 `&email=${encodeURIComponent(email)}` +
@@ -99,11 +101,12 @@ const checkout =
 `&utm_content=${encodeURIComponent(utm_content || "")}` +
 `&utm_term=${encodeURIComponent(utm_term || "")}` +
 
-`&fbclid=${encodeURIComponent(fbclid || "")}` +
+`&fbclid=${encodeURIComponent(fbclidFinal || "")}` +
 `&fbp=${encodeURIComponent(fbp || "")}` +
 `&fbc=${encodeURIComponent(fbc || "")}` +
 
-`&xcod=${encodeURIComponent(xcod || "")}`;
+`&xcod=${encodeURIComponent(xcod || "")}` +
+`&sck=${encodeURIComponent(sck || "")}`;
 
         res.redirect(checkout);
 
