@@ -85,8 +85,15 @@ mensagem_enviada = 0
             event_name: "InitiateCheckout"
         });
 
-        // cria sck baseado no xcod
-        const sck = xcod;
+        // cria xcod no formato que Hotmart / UTMify exige
+const xcodFinal =
+`FBhQwK21wXxR${utm_campaign || ""}` +
+`hQwK21wXxR${utm_medium || ""}` +
+`hQwK21wXxR${utm_content || ""}` +
+`hQwK21wXxR${utm_term || ""}`;
+
+// sck precisa ser igual ao xcod
+const sck = xcodFinal;
 
         // link do checkout
         const checkout =
@@ -105,7 +112,7 @@ mensagem_enviada = 0
 `&fbp=${encodeURIComponent(fbp || "")}` +
 `&fbc=${encodeURIComponent(fbc || "")}` +
 
-`&xcod=${encodeURIComponent(xcod || "")}` +
+`&xcod=${encodeURIComponent(xcodFinal || "")}` +
 `&sck=${encodeURIComponent(sck || "")}`;
 
         res.redirect(checkout);
