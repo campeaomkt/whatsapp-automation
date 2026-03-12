@@ -94,28 +94,14 @@ const xcodFinal =
 
 const sck = xcodFinal;
 
-        // link do checkout
-        const checkout =
+// link do checkout (versão limpa)
+const checkout =
 `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1` +
 `&name=${encodeURIComponent(nome)}` +
 `&email=${encodeURIComponent(email)}` +
-`&phone=${encodeURIComponent(telefone)}` +
+`&phone=${encodeURIComponent(telefone)}`;
 
-`&utm_source=${encodeURIComponent(utm_source || "")}` +
-`&utm_campaign=${encodeURIComponent(utm_campaign || "")}` +
-`&utm_medium=${encodeURIComponent(utm_medium || "")}` +
-`&utm_content=${encodeURIComponent(utm_content || "")}` +
-`&utm_term=${encodeURIComponent(utm_term || "")}` +
-
-`&fbclid=${encodeURIComponent(fbclidFinal || "")}` +
-`&fbp=${encodeURIComponent(fbp || "")}` +
-`&fbc=${encodeURIComponent(fbc || "")}` +
-
-`&xcod=${encodeURIComponent(xcodFinal || "")}` +
-`&sck=${encodeURIComponent(sck || "")}`;
-
-        res.redirect(checkout);
-
+res.redirect(checkout);
     } catch (error) {
 
         console.error("Erro ao salvar lead:", error);
