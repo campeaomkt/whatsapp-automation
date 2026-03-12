@@ -94,12 +94,18 @@ const xcodFinal =
 
 const sck = xcodFinal;
 
-// link do checkout (versão limpa)
+// pega a query completa que veio da landing (UTMs)
+const query = req.originalUrl.includes("?")
+  ? req.originalUrl.split("?")[1]
+  : "";
+
+// link do checkout
 const checkout =
 `https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1` +
 `&name=${encodeURIComponent(nome)}` +
 `&email=${encodeURIComponent(email)}` +
-`&phone=${encodeURIComponent(telefone)}`;
+`&phone=${encodeURIComponent(telefone)}` +
+(query ? `&${query}` : "");
 
 res.redirect(checkout);
     } catch (error) {
