@@ -16,7 +16,7 @@ async function gerarResposta(historico, idioma) {
         es: {
             preco: "12 dólares. Pago único y acceso vitalicio. No es suscripción.",
             plataforma: "La compra se realiza a través de Hotmart, plataforma segura y reconocida internacionalmente. El acceso se libera automáticamente después del pago. Garantía de 7 días.",
-            link: "https://pay.hotmart.com/F98850943F?checkoutMode=10",
+            link: "https://pay.hotmart.com/F98850943F?checkoutMode=10&hideBillet=1&utm_source=whatsapp",
             nomePlataforma: "Hotmart"
         }
     };
