@@ -25,6 +25,15 @@ if (data.event === "PURCHASE_APPROVED") {
     const nome = data.data?.buyer?.name;
     const telefone = data.data?.buyer?.phone?.replace(/\D/g, "");
 
+    // dados extras para melhorar match no Facebook
+    const firstName = data.data?.buyer?.first_name;
+    const lastName = data.data?.buyer?.last_name;
+
+    const cidade = data.data?.buyer?.address?.city;
+    const estado = data.data?.buyer?.address?.state;
+    const zip = data.data?.buyer?.address?.zipcode;
+    const country = data.data?.buyer?.address?.country_iso;
+
     // valor da venda (fallback caso não encontre comissão)
     const valorVenda = parseFloat(data.data?.purchase?.price?.value || 0);
 
@@ -72,6 +81,14 @@ if (data.event === "PURCHASE_APPROVED") {
             phone: telefone,
             nome,
 
+            first_name: firstName,
+            last_name: lastName,
+
+            city: cidade,
+            state: estado,
+            zip,
+            country,
+
             event_name: "Purchase",
 
             value: Number(valorFinal),
@@ -84,7 +101,6 @@ if (data.event === "PURCHASE_APPROVED") {
     }
 
 }
-
     // =============================
     // CARRINHO ABANDONADO HOTMART
     // =============================
