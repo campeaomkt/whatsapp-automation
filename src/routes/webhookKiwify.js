@@ -28,18 +28,41 @@ if (data.webhook_event_type === "order_approved") {
     const country = data.Customer?.country;
     const ip = data.Customer?.ip;
 
-    // comissão real recebida
-    const valor = data.Commissions?.my_commission
-        ? Number(data.Commissions.my_commission) / 100
-        : 0;
+    const userAgent = req.headers["user-agent"];
 
     const transactionId = data.order_id;
 
     const eventId = "purchase_" + transactionId;
 
+    // comissão real
+    const valor = data.Commissions?.my_commission
+        ? Number(data.Commissions.my_commission) / 100
+        : 0;
+
+    // =============================
+    // EXTRAIR FBCLID
+    // =============================
+
+    let fbclid = "";
+
+    if (data.TrackingParameters?.utm_content) {
+
+        const parts = data.TrackingParameters.utm_content.split("::");
+
+        if (parts.length > 1) {
+            fbclid = parts[1];
+        }
+
+    }
+
+    const fbc = fbclid
+        ? `fb.1.${Date.now()}.${fbclid}`
+        : undefined;
+
     console.log("💰 Venda aprovada detectada:", email);
     console.log("💰 Valor:", valor);
     console.log("🧾 Transaction:", transactionId);
+    console.log("📊 fbclid:", fbclid);
 
     sendLeadEvent({
 
@@ -56,7 +79,9 @@ if (data.webhook_event_type === "order_approved") {
         country,
 
         client_ip_address: ip,
-        client_user_agent: req.headers["user-agent"],
+        client_user_agent: userAgent,
+
+        fbc,
 
         content_name: data.Product?.product_name,
         content_ids: [data.Product?.product_id],
@@ -75,6 +100,8 @@ if (data.webhook_event_type === "order_approved") {
     });
 
     console.log("✅ Evento Purchase enviado para Meta");
+
+}
 
 }
 
