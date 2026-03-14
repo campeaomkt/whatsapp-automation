@@ -99,9 +99,7 @@ if (data.webhook_event_type === "order_approved") {
 
     });
 
-    console.log("✅ Evento Purchase enviado para Meta");
-
-}
+    console.log("✅ Evento Purchase enviado para Meta"); 
 
 }
 
