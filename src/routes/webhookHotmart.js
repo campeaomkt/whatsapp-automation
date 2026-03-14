@@ -34,7 +34,10 @@ if (data.event === "PURCHASE_APPROVED") {
     const zip = data.data?.buyer?.address?.zipcode;
     const country = data.data?.buyer?.address?.country_iso;
 
-    // valor da venda (fallback caso não encontre comissão)
+    // ID único da venda (ANTI DUPLICAÇÃO)
+    const transactionId = data.data?.purchase?.transaction;
+
+    // valor da venda (fallback)
     const valorVenda = parseFloat(data.data?.purchase?.price?.value || 0);
 
     // buscar comissão correta dentro do array commissions
@@ -60,6 +63,7 @@ if (data.event === "PURCHASE_APPROVED") {
         console.log("💰 Compra aprovada para:", email);
         console.log("💰 Comissão detectada:", comissao);
         console.log("💰 Valor enviado ao Facebook:", valorFinal);
+        console.log("🧾 Transaction ID:", transactionId);
 
         // atualiza lead
         db.prepare(`
@@ -68,9 +72,8 @@ if (data.event === "PURCHASE_APPROVED") {
         WHERE email = ?
         `).run(email);
 
-        // gera event_id único
-        const crypto = require("crypto");
-        const eventId = crypto.randomUUID();
+        // event_id fixo baseado na transação
+        const eventId = `purchase_${transactionId}`;
 
         // envia evento Purchase para Meta
         sendLeadEvent({
