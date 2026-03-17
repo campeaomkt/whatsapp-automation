@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>MultiTrack</title>
+<title>MultiTrack - Pixels</title>
 
 <style>
 body {
@@ -24,28 +24,22 @@ body {
     margin-bottom: 15px;
 }
 
-button {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
 .btn {
     background: #00ff88;
-    font-weight: bold;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-danger {
     background: #ff4d4d;
-    margin-top: 5px;
 }
 
 input, select {
     width: 100%;
     padding: 10px;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    margin: 5px 0;
     border-radius: 6px;
     border: none;
 }
@@ -64,8 +58,8 @@ input, select {
 .modal-box {
     background:#1c1c1c;
     padding:20px;
-    max-width:500px;
-    margin:80px auto;
+    max-width:400px;
+    margin:100px auto;
     border-radius:10px;
 }
 </style>
@@ -75,7 +69,7 @@ input, select {
 
 <div class="container">
 
-<h2>🔥 MultiTrack - Produtos</h2>
+<h2>🔥 MultiTrack - Pixels</h2>
 
 <button class="btn" onclick="abrirModal()">➕ Criar Pixel</button>
 
@@ -105,46 +99,36 @@ input, select {
 
 async function carregar() {
 
-    const products = await (await fetch("/products")).json();
     const pixels = await (await fetch("/products/pixels")).json();
+    const products = await (await fetch("/products")).json();
 
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
 
-    if (!products.length) {
-        lista.innerHTML = `
-            <p style="text-align:center;opacity:0.7">
-                Nenhum produto ainda.<br>
-                Faça uma venda ou teste webhook 🚀
-            </p>
-        `;
+    if (!pixels.length) {
+        lista.innerHTML = "<p>Nenhum pixel ainda</p>";
         return;
     }
 
-    products.forEach(p => {
-
-        const status = p.pixel_ref
-            ? "🟢 Ativo"
-            : "🔴 Sem Pixel";
+    pixels.forEach(px => {
 
         lista.innerHTML += `
             <div class="card">
-                <b>${p.name || "Sem nome"}</b><br>
-                Plataforma: ${p.platform}<br>
-                Product ID: ${p.product_id}<br>
-                Status: ${status}<br><br>
 
-                <label>Purchase:</label>
-                <select onchange="vincular(${p.id}, this.value)">
-                    <option value="">Selecionar Pixel</option>
-                    ${pixels.map(px => `
-                        <option value="${px.id}" ${p.pixel_ref == px.id ? "selected" : ""}>
-                            ${px.name}
+                <b>${px.name}</b><br>
+                Pixel ID: ${px.pixel_id}<br><br>
+
+                <b>Purchase:</b>
+
+                <select onchange="vincular(${px.id}, this.value)">
+                    <option value="">Selecionar produto</option>
+                    ${products.map(p => `
+                        <option value="${p.id}">
+                            ${p.name || "Sem nome"}
                         </option>
                     `).join("")}
                 </select>
 
-                <button class="btn-danger" onclick="excluir(${p.id})">Excluir</button>
             </div>
         `;
     });
@@ -152,19 +136,7 @@ async function carregar() {
 }
 
 // =============================
-// MODAL
-// =============================
-
-function abrirModal() {
-    document.getElementById("modal").style.display = "block";
-}
-
-function fecharModal() {
-    document.getElementById("modal").style.display = "none";
-}
-
-// =============================
-// CRIAR PIXEL (CORRETO)
+// CRIAR PIXEL
 // =============================
 
 async function salvarPixel() {
@@ -172,11 +144,6 @@ async function salvarPixel() {
     const name = document.getElementById("m_name").value;
     const pixel_id = document.getElementById("m_pixel_id").value;
     const token = document.getElementById("m_token").value;
-
-    if (!name || !pixel_id || !token) {
-        alert("Preencha tudo");
-        return;
-    }
 
     const res = await fetch("/products/create-pixel", {
         method: "POST",
@@ -193,38 +160,32 @@ async function salvarPixel() {
 }
 
 // =============================
-// VINCULAR PIXEL (Purchase)
+// VINCULAR PRODUCT → PIXEL
 // =============================
 
-async function vincular(product_id, pixel_id) {
+async function vincular(pixel_id, product_id) {
 
     await fetch("/products/link-pixel", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ product_id, pixel_id })
+        body: JSON.stringify({
+            product_id,
+            pixel_id
+        })
     });
+
+    alert("Produto vinculado ao Purchase!");
 
 }
 
 // =============================
-// EXCLUIR
-// =============================
 
-async function excluir(id) {
+function abrirModal() {
+    document.getElementById("modal").style.display = "block";
+}
 
-    const confirmar = confirm("Tem certeza?");
-
-    if (!confirmar) return;
-
-    const res = await fetch(`/products/${id}`, {
-        method: "DELETE"
-    });
-
-    const json = await res.json();
-
-    alert(json.message);
-
-    carregar();
+function fecharModal() {
+    document.getElementById("modal").style.display = "none";
 }
 
 carregar();
