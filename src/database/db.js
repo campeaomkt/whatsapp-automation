@@ -2,7 +2,7 @@ const Database = require("better-sqlite3");
 
 const db = new Database("./src/database/leads.db");
 
-/* ================= CRIAR TABELA ================= */
+/* ================= LEADS ================= */
 
 db.prepare(`
 CREATE TABLE IF NOT EXISTS leads (
@@ -22,39 +22,16 @@ CREATE TABLE IF NOT EXISTS leads (
 
 /* ================= GARANTIR COLUNAS ================= */
 
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN comprou INTEGER DEFAULT 0`).run();
-} catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN comprou INTEGER DEFAULT 0`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN mensagem_enviada INTEGER DEFAULT 0`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN utm_medium TEXT`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN utm_term TEXT`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN fbp TEXT`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN fbc TEXT`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN ip TEXT`).run(); } catch (e) {}
+try { db.prepare(`ALTER TABLE leads ADD COLUMN user_agent TEXT`).run(); } catch (e) {}
 
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN mensagem_enviada INTEGER DEFAULT 0`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN utm_medium TEXT`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN utm_term TEXT`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN fbp TEXT`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN fbc TEXT`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN ip TEXT`).run();
-} catch (e) {}
-
-try {
-    db.prepare(`ALTER TABLE leads ADD COLUMN user_agent TEXT`).run();
-} catch (e) {}
-
-// ================= PRODUCTS =================
+/* ================= PRODUCTS ================= */
 
 db.prepare(`
 CREATE TABLE IF NOT EXISTS products (
@@ -64,25 +41,29 @@ CREATE TABLE IF NOT EXISTS products (
     product_id TEXT UNIQUE,
     pixel_id TEXT,
     pixel_token TEXT,
+    pixel_ref INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )
 `).run();
 
-// NOVA TABELA PIXELS
+/* ================= PIXELS ================= */
+
 db.prepare(`
 CREATE TABLE IF NOT EXISTS pixels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     pixel_id TEXT,
-    token TEXT
+    token TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )
 `).run();
 
-// NOVA REFERÊNCIA NO PRODUCT
+/* ================= GARANTIR COLUNA pixel_ref ================= */
+
 try {
     db.prepare(`ALTER TABLE products ADD COLUMN pixel_ref INTEGER`).run();
 } catch (e) {}
 
-// ================= EXPORT =================
+/* ================= EXPORT ================= */
 
 module.exports = db;

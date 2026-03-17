@@ -95,15 +95,7 @@ input, select {
         <input id="m_pixel_id" placeholder="Pixel ID">
         <input id="m_token" placeholder="Token">
 
-        <label>Evento:</label>
-        <select id="m_event" onchange="carregarProdutosModal()">
-            <option value="">Selecionar</option>
-            <option value="purchase">Purchase</option>
-        </select>
-
-        <div id="produtos_box"></div>
-
-        <button class="btn" onclick="salvarPixelCompleto()">Salvar</button>
+        <button class="btn" onclick="salvarPixel()">Salvar</button>
         <button class="btn-danger" onclick="fecharModal()">Cancelar</button>
 
     </div>
@@ -131,7 +123,7 @@ async function carregar() {
 
     products.forEach(p => {
 
-        const status = (p.pixel_ref || p.pixel_id)
+        const status = p.pixel_ref
             ? "🟢 Ativo"
             : "🔴 Sem Pixel";
 
@@ -142,6 +134,7 @@ async function carregar() {
                 Product ID: ${p.product_id}<br>
                 Status: ${status}<br><br>
 
+                <label>Purchase:</label>
                 <select onchange="vincular(${p.id}, this.value)">
                     <option value="">Selecionar Pixel</option>
                     ${pixels.map(px => `
@@ -171,50 +164,24 @@ function fecharModal() {
 }
 
 // =============================
-// CARREGAR PRODUTOS NO MODAL
+// CRIAR PIXEL (CORRETO)
 // =============================
 
-async function carregarProdutosModal() {
-
-    const products = await (await fetch("/products")).json();
-
-    let html = "<label>Selecionar Produtos:</label><br>";
-
-    products.forEach(p => {
-        html += `
-            <label>
-                <input type="checkbox" value="${p.id}">
-                ${p.name || "Sem nome"}
-            </label><br>
-        `;
-    });
-
-    document.getElementById("produtos_box").innerHTML = html;
-}
-
-// =============================
-// SALVAR PIXEL COMPLETO
-// =============================
-
-async function salvarPixelCompleto() {
+async function salvarPixel() {
 
     const name = document.getElementById("m_name").value;
     const pixel_id = document.getElementById("m_pixel_id").value;
     const token = document.getElementById("m_token").value;
-
-    const checkboxes = document.querySelectorAll("#produtos_box input:checked");
-
-    const products = Array.from(checkboxes).map(cb => cb.value);
 
     if (!name || !pixel_id || !token) {
         alert("Preencha tudo");
         return;
     }
 
-    const res = await fetch("/products/create-pixel-full", {
+    const res = await fetch("/products/create-pixel", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ name, pixel_id, token, products })
+        body: JSON.stringify({ name, pixel_id, token })
     });
 
     const json = await res.json();
@@ -226,7 +193,7 @@ async function salvarPixelCompleto() {
 }
 
 // =============================
-// VINCULAR PIXEL
+// VINCULAR PIXEL (Purchase)
 // =============================
 
 async function vincular(product_id, pixel_id) {
