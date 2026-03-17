@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>MultiTrack</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #111;
+    color: #fff;
+    padding: 40px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+}
+
+.card {
+    background: #1c1c1c;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn {
+    background: #00ff88;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: none;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2>🔥 MultiTrack - Produtos</h2>
+
+<div id="lista">Carregando...</div>
+
+</div>
+
+<script>
+
+async function carregar() {
+
+    const res = await fetch("/products");
+    const products = await res.json();
+
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    products.forEach(p => {
+
+        const status = p.pixel_id ? "🟢 Ativo" : "🔴 Sem Pixel";
+
+        lista.innerHTML += `
+            <div class="card">
+                <b>${p.name}</b><br>
+                Plataforma: ${p.platform}<br>
+                Product ID: ${p.product_id}<br>
+                Status: ${status}<br><br>
+
+                <input id="pixel_${p.id}" placeholder="Pixel ID" value="${p.pixel_id || ""}">
+                <input id="token_${p.id}" placeholder="Token" value="${p.pixel_token || ""}">
+
+                <button class="btn" onclick="salvar(${p.id})">Salvar</button>
+            </div>
+        `;
+    });
+
+}
+
+async function salvar(id) {
+
+    const pixel_id = document.getElementById("pixel_" + id).value;
+    const pixel_token = document.getElementById("token_" + id).value;
+
+    const res = await fetch("/products/pixel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            product_id: id,
+            pixel_id,
+            pixel_token
+        })
+    });
+
+    const json = await res.json();
+
+    alert(json.message);
+
+    carregar();
+}
+
+carregar();
+
+</script>
+
+</body>
+</html>

@@ -22,6 +22,10 @@ const webhookHotmart = require("./routes/webhookHotmart");
 const metaWebhook = require("./routes/meta");
 const leadRoute = require("./routes/lead");
 const geoRoute = require("./routes/geo");
+const webhookKiwifyMulti = require("./multitrack/webhookKiwifyMulti");
+const webhookHotmartMulti = require("./multitrack/webhookHotmartMulti");
+const productsRoute = require("./routes/products");
+
 
 /* ===== ENDPOINTS ===== */
 app.use("/webhook/kiwify", webhookKiwify);
@@ -29,6 +33,10 @@ app.use("/webhook/hotmart", webhookHotmart);
 app.use("/webhook/whatsapp", metaWebhook);
 app.use("/lead", leadRoute);
 app.use("/geo", geoRoute);
+app.use("/multi/kiwify", webhookKiwifyMulti);
+app.use("/multi/hotmart", webhookHotmartMulti);
+app.use("/products", productsRoute);
+app.use(express.static("public"));
 
 module.exports = app;
 

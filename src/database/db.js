@@ -54,4 +54,20 @@ try {
     db.prepare(`ALTER TABLE leads ADD COLUMN user_agent TEXT`).run();
 } catch (e) {}
 
+// ================= PRODUCTS =================
+
+db.prepare(`
+CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    platform TEXT,
+    product_id TEXT UNIQUE,
+    pixel_id TEXT,
+    pixel_token TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+`).run();
+
+// ================= EXPORT =================
+
 module.exports = db;
