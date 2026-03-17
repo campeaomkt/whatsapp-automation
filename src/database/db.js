@@ -68,6 +68,21 @@ CREATE TABLE IF NOT EXISTS products (
 )
 `).run();
 
+// NOVA TABELA PIXELS
+db.prepare(`
+CREATE TABLE IF NOT EXISTS pixels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    pixel_id TEXT,
+    token TEXT
+)
+`).run();
+
+// NOVA REFERÊNCIA NO PRODUCT
+try {
+    db.prepare(`ALTER TABLE products ADD COLUMN pixel_ref INTEGER`).run();
+} catch (e) {}
+
 // ================= EXPORT =================
 
 module.exports = db;

@@ -38,10 +38,12 @@ router.post("/", async (req, res) => {
         // BUSCAR PRODUTO
         // =============================
 
-        let product = db.prepare(`
-            SELECT * FROM products WHERE product_id = ?
-        `).get(data.Product?.product_id);
-
+       let product = db.prepare(`
+SELECT p.*, px.pixel_id as px_id, px.token as px_token
+FROM products p
+LEFT JOIN pixels px ON p.pixel_ref = px.id
+WHERE p.product_id = ?
+`).get(data.Product?.product_id);
         console.log("🧩 Produto:", product?.name || "NÃO ENCONTRADO");
 
         // =============================
@@ -68,7 +70,7 @@ router.post("/", async (req, res) => {
         // VALIDAR PIXEL
         // =============================
 
-        if (!product.pixel_id || !product.pixel_token) {
+        if (!product.px_id || !product.px_token) {
             console.log("❌ [MULTI] Produto sem pixel/token → aguardando configuração");
             return res.status(200).send("Pixel não configurado ainda");
         }
@@ -137,8 +139,8 @@ router.post("/", async (req, res) => {
             currency: "BRL"
 
         }, {
-            pixel_id: product.pixel_id,
-            token: product.pixel_token
+            pixel_id: product.px_id || product.pixel_id,
+token: product.px_token || product.pixel_token
         });
 
         console.log("✅ [MULTI] Evento enviado para pixel:", product.pixel_id);

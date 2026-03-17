@@ -36,7 +36,12 @@ button {
     font-weight: bold;
 }
 
-input {
+.btn-danger {
+    background: #ff4d4d;
+    margin-top: 5px;
+}
+
+input, select {
     width: 100%;
     padding: 10px;
     margin-top: 5px;
@@ -53,6 +58,10 @@ input {
 
 <h2>🔥 MultiTrack - Produtos</h2>
 
+<button class="btn" onclick="criarPixel()">➕ Criar Pixel</button>
+
+<br><br>
+
 <div id="lista">Carregando...</div>
 
 </div>
@@ -61,32 +70,97 @@ input {
 
 async function carregar() {
 
-    const res = await fetch("/products");
-    const products = await res.json();
+    const products = await (await fetch("/products")).json();
+    const pixels = await (await fetch("/products/pixels")).json();
 
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
 
+    if (!products.length) {
+        lista.innerHTML = `
+            <p style="text-align:center;opacity:0.7">
+                Nenhum produto ainda.<br>
+                Faça uma venda ou teste webhook 🚀
+            </p>
+        `;
+        return;
+    }
+
     products.forEach(p => {
 
-        const status = p.pixel_id ? "🟢 Ativo" : "🔴 Sem Pixel";
+        const status = (p.pixel_ref || p.pixel_id)
+            ? "🟢 Ativo"
+            : "🔴 Sem Pixel";
 
         lista.innerHTML += `
             <div class="card">
-                <b>${p.name}</b><br>
+                <b>${p.name || "Sem nome"}</b><br>
                 Plataforma: ${p.platform}<br>
                 Product ID: ${p.product_id}<br>
                 Status: ${status}<br><br>
 
+                <!-- NOVO SISTEMA -->
+                <select onchange="vincular(${p.id}, this.value)">
+                    <option value="">Selecionar Pixel</option>
+                    ${pixels.map(px => `
+                        <option value="${px.id}" ${p.pixel_ref == px.id ? "selected" : ""}>
+                            ${px.name}
+                        </option>
+                    `).join("")}
+                </select>
+
+                <!-- SISTEMA ANTIGO (mantido) -->
                 <input id="pixel_${p.id}" placeholder="Pixel ID" value="${p.pixel_id || ""}">
                 <input id="token_${p.id}" placeholder="Token" value="${p.pixel_token || ""}">
 
-                <button class="btn" onclick="salvar(${p.id})">Salvar</button>
+                <button class="btn" onclick="salvar(${p.id})">Salvar Antigo</button>
+                <button class="btn-danger" onclick="excluir(${p.id})">Excluir</button>
             </div>
         `;
     });
 
 }
+
+// =============================
+// CRIAR PIXEL
+// =============================
+
+async function criarPixel() {
+
+    const name = prompt("Nome do pixel:");
+    const pixel_id = prompt("Pixel ID:");
+    const token = prompt("Token:");
+
+    if (!name || !pixel_id || !token) return;
+
+    await fetch("/products/create-pixel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, pixel_id, token })
+    });
+
+    alert("✅ Pixel criado!");
+
+    carregar();
+}
+
+// =============================
+// VINCULAR PIXEL
+// =============================
+
+async function vincular(product_id, pixel_id) {
+
+    await fetch("/products/link-pixel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id, pixel_id })
+    });
+
+}
+
+// =============================
+// SISTEMA ANTIGO (mantido)
+// =============================
 
 async function salvar(id) {
 
@@ -101,6 +175,27 @@ async function salvar(id) {
             pixel_id,
             pixel_token
         })
+    });
+
+    const json = await res.json();
+
+    alert(json.message);
+
+    carregar();
+}
+
+// =============================
+// EXCLUIR
+// =============================
+
+async function excluir(id) {
+
+    const confirmar = confirm("Tem certeza que deseja excluir esse produto?");
+
+    if (!confirmar) return;
+
+    const res = await fetch(`/products/${id}`, {
+        method: "DELETE"
     });
 
     const json = await res.json();
