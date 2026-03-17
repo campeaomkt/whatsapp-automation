@@ -129,4 +129,47 @@ router.post("/link-pixel", (req, res) => {
 
 });
 
+// =============================
+// CRIAR PIXEL + VINCULAR PRODUTOS
+// =============================
+
+router.post("/create-pixel-full", (req, res) => {
+
+    const { name, pixel_id, token, products } = req.body;
+
+    try {
+
+        // cria pixel
+        const result = db.prepare(`
+            INSERT INTO pixels (name, pixel_id, token)
+            VALUES (?, ?, ?)
+        `).run(name, pixel_id, token);
+
+        const pixelId = result.lastInsertRowid;
+
+        // vincula aos produtos
+        if (products && products.length) {
+
+            const stmt = db.prepare(`
+                UPDATE products
+                SET pixel_ref = ?
+                WHERE id = ?
+            `);
+
+            products.forEach(pId => {
+                stmt.run(pixelId, pId);
+            });
+
+        }
+
+        res.json({ message: "✅ Pixel criado e vinculado!" });
+
+    } catch (err) {
+
+        res.json({ message: "❌ Erro: " + err.message });
+
+    }
+
+});
+
 module.exports = router;

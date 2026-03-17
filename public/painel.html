@@ -49,6 +49,25 @@ input, select {
     border-radius: 6px;
     border: none;
 }
+
+/* MODAL */
+.modal {
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+}
+
+.modal-box {
+    background:#1c1c1c;
+    padding:20px;
+    max-width:500px;
+    margin:80px auto;
+    border-radius:10px;
+}
 </style>
 
 </head>
@@ -58,12 +77,36 @@ input, select {
 
 <h2>🔥 MultiTrack - Produtos</h2>
 
-<button class="btn" onclick="criarPixel()">➕ Criar Pixel</button>
+<button class="btn" onclick="abrirModal()">➕ Criar Pixel</button>
 
 <br><br>
 
 <div id="lista">Carregando...</div>
 
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+    <div class="modal-box">
+
+        <h3>Criar Pixel</h3>
+
+        <input id="m_name" placeholder="Nome do Pixel">
+        <input id="m_pixel_id" placeholder="Pixel ID">
+        <input id="m_token" placeholder="Token">
+
+        <label>Evento:</label>
+        <select id="m_event" onchange="carregarProdutosModal()">
+            <option value="">Selecionar</option>
+            <option value="purchase">Purchase</option>
+        </select>
+
+        <div id="produtos_box"></div>
+
+        <button class="btn" onclick="salvarPixelCompleto()">Salvar</button>
+        <button class="btn-danger" onclick="fecharModal()">Cancelar</button>
+
+    </div>
 </div>
 
 <script>
@@ -99,7 +142,6 @@ async function carregar() {
                 Product ID: ${p.product_id}<br>
                 Status: ${status}<br><br>
 
-                <!-- NOVO SISTEMA -->
                 <select onchange="vincular(${p.id}, this.value)">
                     <option value="">Selecionar Pixel</option>
                     ${pixels.map(px => `
@@ -109,11 +151,6 @@ async function carregar() {
                     `).join("")}
                 </select>
 
-                <!-- SISTEMA ANTIGO (mantido) -->
-                <input id="pixel_${p.id}" placeholder="Pixel ID" value="${p.pixel_id || ""}">
-                <input id="token_${p.id}" placeholder="Token" value="${p.pixel_token || ""}">
-
-                <button class="btn" onclick="salvar(${p.id})">Salvar Antigo</button>
                 <button class="btn-danger" onclick="excluir(${p.id})">Excluir</button>
             </div>
         `;
@@ -122,25 +159,69 @@ async function carregar() {
 }
 
 // =============================
-// CRIAR PIXEL
+// MODAL
 // =============================
 
-async function criarPixel() {
+function abrirModal() {
+    document.getElementById("modal").style.display = "block";
+}
 
-    const name = prompt("Nome do pixel:");
-    const pixel_id = prompt("Pixel ID:");
-    const token = prompt("Token:");
+function fecharModal() {
+    document.getElementById("modal").style.display = "none";
+}
 
-    if (!name || !pixel_id || !token) return;
+// =============================
+// CARREGAR PRODUTOS NO MODAL
+// =============================
 
-    await fetch("/products/create-pixel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, pixel_id, token })
+async function carregarProdutosModal() {
+
+    const products = await (await fetch("/products")).json();
+
+    let html = "<label>Selecionar Produtos:</label><br>";
+
+    products.forEach(p => {
+        html += `
+            <label>
+                <input type="checkbox" value="${p.id}">
+                ${p.name || "Sem nome"}
+            </label><br>
+        `;
     });
 
-    alert("✅ Pixel criado!");
+    document.getElementById("produtos_box").innerHTML = html;
+}
 
+// =============================
+// SALVAR PIXEL COMPLETO
+// =============================
+
+async function salvarPixelCompleto() {
+
+    const name = document.getElementById("m_name").value;
+    const pixel_id = document.getElementById("m_pixel_id").value;
+    const token = document.getElementById("m_token").value;
+
+    const checkboxes = document.querySelectorAll("#produtos_box input:checked");
+
+    const products = Array.from(checkboxes).map(cb => cb.value);
+
+    if (!name || !pixel_id || !token) {
+        alert("Preencha tudo");
+        return;
+    }
+
+    const res = await fetch("/products/create-pixel-full", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, pixel_id, token, products })
+    });
+
+    const json = await res.json();
+
+    alert(json.message);
+
+    fecharModal();
     carregar();
 }
 
@@ -152,36 +233,10 @@ async function vincular(product_id, pixel_id) {
 
     await fetch("/products/link-pixel", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ product_id, pixel_id })
     });
 
-}
-
-// =============================
-// SISTEMA ANTIGO (mantido)
-// =============================
-
-async function salvar(id) {
-
-    const pixel_id = document.getElementById("pixel_" + id).value;
-    const pixel_token = document.getElementById("token_" + id).value;
-
-    const res = await fetch("/products/pixel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            product_id: id,
-            pixel_id,
-            pixel_token
-        })
-    });
-
-    const json = await res.json();
-
-    alert(json.message);
-
-    carregar();
 }
 
 // =============================
@@ -190,7 +245,7 @@ async function salvar(id) {
 
 async function excluir(id) {
 
-    const confirmar = confirm("Tem certeza que deseja excluir esse produto?");
+    const confirmar = confirm("Tem certeza?");
 
     if (!confirmar) return;
 
