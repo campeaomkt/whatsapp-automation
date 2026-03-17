@@ -153,4 +153,38 @@ router.post("/link-pixel", (req, res) => {
 
 });
 
+
+// =============================
+// DELETAR PIXEL
+// =============================
+
+router.delete("/pixel/:id", (req, res) => {
+
+    const { id } = req.params;
+
+    try {
+
+        // remove vínculo dos produtos primeiro
+        db.prepare(`
+            UPDATE products
+            SET pixel_ref = NULL
+            WHERE pixel_ref = ?
+        `).run(id);
+
+        // remove pixel
+        db.prepare(`
+            DELETE FROM pixels
+            WHERE id = ?
+        `).run(id);
+
+        res.json({ message: "🗑️ Pixel excluído!" });
+
+    } catch (err) {
+
+        res.json({ message: "❌ Erro: " + err.message });
+
+    }
+
+});
+
 module.exports = router;
