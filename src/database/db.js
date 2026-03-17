@@ -30,4 +30,28 @@ try {
     db.prepare(`ALTER TABLE leads ADD COLUMN mensagem_enviada INTEGER DEFAULT 0`).run();
 } catch (e) {}
 
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN utm_medium TEXT`).run();
+} catch (e) {}
+
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN utm_term TEXT`).run();
+} catch (e) {}
+
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN fbp TEXT`).run();
+} catch (e) {}
+
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN fbc TEXT`).run();
+} catch (e) {}
+
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN ip TEXT`).run();
+} catch (e) {}
+
+try {
+    db.prepare(`ALTER TABLE leads ADD COLUMN user_agent TEXT`).run();
+} catch (e) {}
+
 module.exports = db;

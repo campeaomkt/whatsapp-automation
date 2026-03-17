@@ -33,47 +33,61 @@ const {
         const fbc = req.cookies?._fbc || (fbclidFinal ? `fb.1.${Date.now()}.${fbclidFinal}` : "");
 
         // salva no banco
-        db.prepare(`
+  db.prepare(`
 INSERT INTO leads 
-(nome, email, telefone, utm_source, utm_campaign, utm_content, created_at)
-VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+(nome, email, telefone, utm_source, utm_campaign, utm_content, utm_medium, utm_term, fbp, fbc, ip, user_agent, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 ON CONFLICT(email) DO UPDATE SET
 nome = excluded.nome,
 telefone = excluded.telefone,
 utm_source = excluded.utm_source,
 utm_campaign = excluded.utm_campaign,
 utm_content = excluded.utm_content,
+utm_medium = excluded.utm_medium,
+utm_term = excluded.utm_term,
+fbp = excluded.fbp,
+fbc = excluded.fbc,
+ip = excluded.ip,
+user_agent = excluded.user_agent,
 created_at = datetime('now'),
 mensagem_enviada = 0
 `).run(
-            nome,
-            email,
-            telefone,
-            utm_source,
-            utm_campaign,
-            utm_content
-        );
+    nome,
+    email,
+    telefone,
+    utm_source,
+    utm_campaign,
+    utm_content,
+    utm_medium,
+    utm_term,
+    fbp,
+    fbc,
+    req.ip,
+    req.headers["user-agent"]
+);
 
         console.log("Lead salvo no banco");
 
         const eventData = {
 
-            event_id: eventId,
+    event_id: eventId,
 
-            email,
-            phone: telefone,
-            nome,
+    email,
+    phone: telefone,
+    nome,
 
-            utm_source,
-            utm_campaign,
-            utm_content,
+    utm_source,
+    utm_campaign,
+    utm_content,
+    utm_medium,
+    utm_term,
 
-            ip: req.ip,
-            userAgent: req.headers["user-agent"],
+    ip: req.ip,
+    userAgent: req.headers["user-agent"],
 
-            fbp,
-            fbc
-        };
+    fbp,
+    fbc
+};
 
         // envia evento Lead
         sendLeadEvent(eventData);

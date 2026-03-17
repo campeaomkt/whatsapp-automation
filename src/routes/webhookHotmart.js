@@ -44,7 +44,6 @@ if (data.event === "PURCHASE_APPROVED") {
     let comissao = 0;
 
     if (data.data?.commissions && Array.isArray(data.data.commissions)) {
-
         const producerCommission = data.data.commissions.find(
             c => c.source === "PRODUCER"
         );
@@ -52,7 +51,6 @@ if (data.event === "PURCHASE_APPROVED") {
         if (producerCommission) {
             comissao = parseFloat(producerCommission.value);
         }
-
     }
 
     // sempre prioriza comissão
@@ -65,6 +63,16 @@ if (data.event === "PURCHASE_APPROVED") {
         console.log("💰 Valor enviado ao Facebook:", valorFinal);
         console.log("🧾 Transaction ID:", transactionId);
 
+        // =============================
+        // BUSCAR DADOS DO LEAD (NOVO)
+        // =============================
+
+        const lead = db.prepare(`
+            SELECT utm_source, utm_campaign, utm_content, utm_medium, utm_term, fbp, fbc, ip, user_agent
+            FROM leads
+            WHERE email = ?
+        `).get(email);
+
         // atualiza lead
         db.prepare(`
         UPDATE leads
@@ -75,7 +83,10 @@ if (data.event === "PURCHASE_APPROVED") {
         // event_id fixo baseado na transação
         const eventId = `purchase_${transactionId}`;
 
-        // envia evento Purchase para Meta
+        // =============================
+        // ENVIO PARA META (ATUALIZADO)
+        // =============================
+
         sendLeadEvent({
 
             event_id: eventId,
@@ -91,6 +102,19 @@ if (data.event === "PURCHASE_APPROVED") {
             state: estado,
             zip,
             country,
+
+            // 🔥 DADOS DO LEAD (PRINCIPAL MELHORIA)
+            utm_source: lead?.utm_source,
+            utm_campaign: lead?.utm_campaign,
+            utm_content: lead?.utm_content,
+            utm_medium: lead?.utm_medium,
+            utm_term: lead?.utm_term,
+
+            fbp: lead?.fbp,
+            fbc: lead?.fbc,
+
+            ip: lead?.ip,
+            userAgent: lead?.user_agent,
 
             event_name: "Purchase",
 

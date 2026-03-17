@@ -39,68 +39,81 @@ if (data.webhook_event_type === "order_approved") {
         ? Number(data.Commissions.my_commission) / 100
         : 0;
 
-    // =============================
-    // EXTRAIR FBCLID
-    // =============================
+   // =============================
+// EXTRAIR FBCLID
+// =============================
 
-    let fbclid = "";
+let fbclid = "";
 
-    if (data.TrackingParameters?.utm_content) {
-
-        const parts = data.TrackingParameters.utm_content.split("::");
-
-        if (parts.length > 1) {
-            fbclid = parts[1];
-        }
-
+if (data.TrackingParameters?.utm_content) {
+    const parts = data.TrackingParameters.utm_content.split("::");
+    if (parts.length > 1) {
+        fbclid = parts[1];
     }
+}
 
-    const fbc = fbclid
-        ? `fb.1.${Date.now()}.${fbclid}`
-        : undefined;
+const fbcFromWebhook = fbclid
+    ? `fb.1.${Date.now()}.${fbclid}`
+    : undefined;
 
-    console.log("💰 Venda aprovada detectada:", email);
-    console.log("💰 Valor:", valor);
-    console.log("🧾 Transaction:", transactionId);
-    console.log("📊 fbclid:", fbclid);
+console.log("💰 Venda aprovada detectada:", email);
+console.log("💰 Valor:", valor);
+console.log("🧾 Transaction:", transactionId);
+console.log("📊 fbclid:", fbclid);
 
-    sendLeadEvent({
+// =============================
+// BUSCAR DADOS DO LEAD (NOVO)
+// =============================
 
-        event_id: eventId,
+const db = require("../database/db");
 
-        external_id: transactionId,
+const lead = db.prepare(`
+SELECT utm_source, utm_campaign, utm_content, utm_medium, utm_term, fbp, fbc, ip, user_agent
+FROM leads
+WHERE email = ?
+`).get(email);
 
-        email,
-        phone: telefone,
-        nome,
+// =============================
+// ENVIO PARA META (FINAL)
+// =============================
 
-        first_name: firstName,
+sendLeadEvent({
 
-        country,
+    event_id: eventId,
 
-        client_ip_address: ip,
-        client_user_agent: userAgent,
+    external_id: transactionId,
 
-        fbc,
+    email,
+    phone: telefone,
+    nome,
 
-        content_name: data.Product?.product_name,
-        content_ids: [data.Product?.product_id],
+    first_name: firstName,
+    country,
 
-        utm_source: data.TrackingParameters?.utm_source,
-        utm_campaign: data.TrackingParameters?.utm_campaign,
-        utm_medium: data.TrackingParameters?.utm_medium,
-        utm_content: data.TrackingParameters?.utm_content,
-        utm_term: data.TrackingParameters?.utm_term,
+    // 🔥 DADOS DO LEAD (PRINCIPAL)
+    utm_source: lead?.utm_source,
+    utm_campaign: lead?.utm_campaign,
+    utm_medium: lead?.utm_medium,
+    utm_content: lead?.utm_content,
+    utm_term: lead?.utm_term,
 
-        event_name: "Purchase",
+    fbp: lead?.fbp,
+    fbc: lead?.fbc || fbcFromWebhook,
 
-        value: Number(valor),
-        currency: "BRL"
+    client_ip_address: lead?.ip || ip,
+    client_user_agent: lead?.user_agent || userAgent,
 
-    }, "kiwify");
+    content_name: data.Product?.product_name,
+    content_ids: [data.Product?.product_id],
 
-    console.log("✅ Evento Purchase enviado para Meta"); 
+    event_name: "Purchase",
 
+    value: Number(valor),
+    currency: "BRL"
+
+}, "kiwify");
+
+console.log("✅ Evento Purchase enviado para Meta");
 }
 
     // =============================
