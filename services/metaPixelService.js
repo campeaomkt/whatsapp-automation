@@ -10,10 +10,20 @@ function hash(value) {
         .digest("hex");
 }
 
-async function sendLeadEvent(data) {
+async function sendLeadEvent(data, source = "hotmart") {
 
-    const url = `https://graph.facebook.com/v18.0/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_PIXEL_TOKEN}`;
+    let PIXEL_ID;
+    let TOKEN;
 
+    if (source === "kiwify") {
+        PIXEL_ID = process.env.META_PIXEL_ID_KIWIFY;
+        TOKEN = process.env.META_PIXEL_TOKEN_KIWIFY;
+    } else {
+        PIXEL_ID = process.env.META_PIXEL_ID;
+        TOKEN = process.env.META_PIXEL_TOKEN;
+    }
+
+    const url = `https://graph.facebook.com/v18.0/${PIXEL_ID}/events?access_token=${TOKEN}`;
     const payload = {
         data: [
             {

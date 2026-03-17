@@ -97,7 +97,7 @@ if (data.webhook_event_type === "order_approved") {
         value: Number(valor),
         currency: "BRL"
 
-    });
+    }, "kiwify");
 
     console.log("✅ Evento Purchase enviado para Meta"); 
 
